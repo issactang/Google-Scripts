@@ -72,7 +72,10 @@ function onEdit(e) {
       if(dateTimeCell.getValue()== "" ){//check if the field is empty before stamping
       dateTimeCell.setValue(new Date());
       }
-      selectedCell.offset(0,-1).insertCheckboxes(); //auto add checkbox
+      selectedCell.offset(0,-1).insertCheckboxes(); //auto add checkbox for done
+      selectedCell.offset(0,1).insertCheckboxes();// auto add checkbox for move to DAILY tab 
+      
+      
      
 
 
@@ -113,11 +116,48 @@ function onEdit(e) {
 
         
       }
+       }
+      /*
+      When checkbox Column D, MOVE TO Daily,
+      */
+      var moveto_d =4; // col D checkbox for moving to Daily
+      if( selectedCell.getColumn() == moveto_d) { 
+
+     var moveto=selectedCell.getValue();
+     var moveto_row=selectedCell.getRowIndex();
+     //Browser.msgBox(moveto_row);
+        if(moveto) {
+       
+   
+ var item=selectedCell.offset(0,-1).getValue();
+ 
+ var created=selectedCell.offset(0,-3).getValue();
+
+ var done=selectedCell;
+   var aLast = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getDataRange().getNumRows();
+   var nextr=aLast+1;
+ SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getRange('B'+nextr).insertCheckboxes().check();
+
+    
+ // var test=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").appendRow([created,done,item]);//write to archive
+
+  
+
+  
+  
+   //SpreadsheetApp.getActiveSpreadsheet().getActiveSheet().deleteRow(moveto_row); //delete record from TODO
+
+        
+      }
+       }
      
    
-                                             }
+                                            
  backup1();
  backup2();
 
 }
 
+/*
+2019-12-28 -- ADDED checkbox at TODO tab, the function is when checked, append DAILY TAB then deletes from TODO tab
+*/
