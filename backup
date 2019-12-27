@@ -1,0 +1,30 @@
+/**********
+on click with backup button, SAVE backup spreadsheet to HKBU/ backup/goolge_drive/personal/
+  
+  ************/
+  function backup1(){
+   var sheet = SpreadsheetApp.getActiveSpreadsheet();
+
+ 
+  
+  var destFolder = DriveApp.getFolderById("13_4rloFllPAIhMvdgYJ-idxFezUFnnCy"); 
+var newfile= DriveApp.getFileById(sheet.getId()).makeCopy(destFolder).setOwner("12676454@life.hkbu.edu.hk"); 
+
+    
+  
+
+       
+  }
+  
+  
+  function backup2(){
+     var sheet = SpreadsheetApp.getActiveSpreadsheet();
+
+    var dest2 =  DriveApp.getFolderById("1mAvLeh3negqeNc-YI5Vq2IB8xzAnOyy5"); // gsuite
+     var newfile2= DriveApp.getFileById(sheet.getId()).makeCopy(dest2);
+    newfile2.setOwner("ccalacs@goldenair.co.uk");
+  
+  }
+/* some other codes here */
+ backup1();
+ backup2();
