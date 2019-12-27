@@ -1,0 +1,184 @@
+/**********
+on click with backup button, SAVE backup spreadsheet to HKBU/ backup/goolge_drive/personal/
+  
+  ************/
+  function backup1(){
+   var sheet = SpreadsheetApp.getActiveSpreadsheet();
+
+ 
+  
+  var destFolder = DriveApp.getFolderById("13_4rloFllPAIhMvdgYJ-idxFezUFnnCy"); 
+var newfile= DriveApp.getFileById(sheet.getId()).makeCopy(destFolder).setOwner("12676454@life.hkbu.edu.hk"); 
+
+    
+  
+
+       
+  }
+  
+  
+  function backup2(){
+     var sheet = SpreadsheetApp.getActiveSpreadsheet();
+
+    var dest2 =  DriveApp.getFolderById("1mAvLeh3negqeNc-YI5Vq2IB8xzAnOyy5"); // gsuite
+     var newfile2= DriveApp.getFileById(sheet.getId()).makeCopy(dest2);
+    newfile2.setOwner("ccalacs@goldenair.co.uk");
+  
+  }
+
+function onOpen(e) {
+  var spreadsheet = e.source;
+  var sheet = spreadsheet.getActiveSheet();
+  var lastRow = spreadsheet.getLastRow();
+  if (sheet.getMaxRows() == lastRow) {
+    sheet.appendRow([""]);
+  }
+  lastRow = lastRow + 1;
+  var range = sheet.getRange("C" + lastRow + ":C" + lastRow); // self defined row to focus 
+  sheet.setActiveRange(range);
+  
+//ON open update the last accessed FIELD
+    SpreadsheetApp.getActiveSheet().getRange('B1').setValue(new Date ());
+
+  /* MENU FOR BACKUP */
+    var ui = SpreadsheetApp.getUi();
+ 
+  ui.createMenu('Backup')
+      .addItem('HKBU','backup1')
+         .addItem('GSUITE','backup2')
+     
+  .addToUi();
+}
+
+
+
+function onEdit(e) {
+
+   var spreadsheet = e.source;
+  var COLUMNTOCHECK = 4;
+  var SHEETNAME = 'main'
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getActiveSheet();
+  //checks that we're on the correct sheet.
+  if( sheet.getSheetName() == SHEETNAME ) { 
+    var selectedCell = ss.getActiveCell();
+    //checks the column to ensure it is on the one we want to cause the date to appear.
+    if( selectedCell.getColumn() == COLUMNTOCHECK) { 
+      // Where you want the date time stamp offset from the input location. [row, column]
+   
+      
+      var dateTimeCell = selectedCell.offset(0,-3);
+         
+      if(dateTimeCell.getValue()== "" ){//check if the field is empty before stamping
+      dateTimeCell.setValue(new Date());
+      }
+      selectedCell.offset(0,1).insertCheckboxes(); //auto add checkbox on done field
+     
+
+
+
+   // Offset Column Is B, lastupdate field is J1
+     SpreadsheetApp.getActiveSheet().getRange('B1').setValue(new Date ());
+    
+
+    }
+    
+  }
+     
+  
+ 
+  /***
+  1.upon create, input on item field
+-autofill created
+-create checkbox for done
+
+2.if done checkbox is tick
+-add curren date to completed
+    */
+    
+  var done_c =5;
+   if( selectedCell.getColumn() == done_c) { 
+
+     var done=selectedCell.getValue();
+     var done_row=selectedCell.getRowIndex();
+     //Browser.msgBox(done_row);
+        if(done) {
+        selectedCell.offset(0,-3).setValue(new Date()); // when done is true, set completed time to now 
+          
+          /*
+          When done, calculate the pay rate ; 2019-12-27
+          C1 is defined as hourly pay
+          B2-A2 using time function calculate the duration
+          from duration, determine number of hours 
+          if duration <=30min, no hour
+          if duration >=30min one hour pay
+          LIMITATION--- valid for 24 hours only. for work overnight 2300 cutoff manual calculation
+                    
+          */
+
+          
+          var starttime=selectedCell.offset(0,-4).getValues();
+          var endtime=selectedCell.offset(0,-3).getValues();
+       
+          var starttime_H = Utilities.formatDate(new Date(starttime), "GMT+8", "HH"); // format the start time, put in the date function
+          var starttime_M = Utilities.formatDate(new Date(starttime), "GMT+8", "mm");
+          //var starttime_H = Utilities.formatDate(new Date(starttime), "GMT+8", "HH:mm:ss"); // format the start time, put in the date function
+          var endtime_H = Utilities.formatDate(new Date(endtime), "GMT+8", "HH"); // format the end time, put in the date function
+        var endtime_M = Utilities.formatDate(new Date(endtime), "GMT+8", "m"); // format the end time, put in the date function
+        var hour=endtime_H-starttime_H;
+        var min="";
+     
+          if(parseInt(endtime_M,10) <60){ // if end time min less than 60 mins +60 for calculation
+            endtime_M=parseInt(endtime_M,10)+60; //parseInt change string to INT
+             min=parseInt(endtime_M,10)-parseInt(starttime_M,10);
+            
+          }else{
+          min=parseInt(endtime_M,10)-parseInt(starttime_M,10);
+      
+          }
+             //Browser.msgBox('min-'+min);
+          if(parseInt(min,10)>=30){
+            //round off calculation of work hours, one hr calc advanced
+           
+          }else{
+          hour=hour-1; // due to direct calc of hours one hour advance
+          }
+              //Browser.msgBox(hour+':'+min);
+          var payrate= SpreadsheetApp.getActiveSheet().getRange('C1').getValue();
+          var pay = payrate * hour;
+           selectedCell.offset(0,3).setValue(pay) //calculate pay according to hour
+          
+           //Browser.msgBox(pay);
+          
+      
+          
+   
+
+ 
+        
+      }
+     
+
+                                           }
+   /* *****
+ after REC payment, input payment REC,
+ auto input current date of REC payment.
+ 
+ */
+       var REC =7; // amount REC
+   if( selectedCell.getColumn() == REC) { 
+
+     var done=selectedCell.getValue();
+     var done_row=selectedCell.getRowIndex();
+     //Browser.msgBox(done_row);
+        if(done) {
+        selectedCell.offset(0,-1).setValue(new Date()); // when done is true, set completed time to now 
+   
+
+ 
+        
+      }
+ backup1();
+ backup2();
+}
+}
