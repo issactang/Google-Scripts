@@ -139,13 +139,13 @@ function onEdit(e) {
  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getRange('B'+nextr).insertCheckboxes().check();
 
     
- // var test=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").appendRow([created,done,item]);//write to archive
+  var test=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").appendRow([created,done,item]);//write to archive
 
   
 
   
   
-   //SpreadsheetApp.getActiveSpreadsheet().getActiveSheet().deleteRow(moveto_row); //delete record from TODO
+   SpreadsheetApp.getActiveSpreadsheet().getActiveSheet().deleteRow(moveto_row); //delete record from TODO
 
         
       }
