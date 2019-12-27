@@ -1,0 +1,159 @@
+function onOpen(e) {
+
+  var spreadsheet = e.source;
+  var sheet = spreadsheet.getActiveSheet();
+  var lastRow = spreadsheet.getLastRow();
+  if (sheet.getMaxRows() == lastRow) {
+    sheet.appendRow([""]);
+  }
+  lastRow = lastRow + 1;
+  var range = sheet.getRange("A" + lastRow + ":A" + lastRow);
+  //sheet.setActiveRange(range);
+  
+
+//focus on last row, when document OPEN
+  
+    //update the Last accessed time after document OPEN
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Annual").getRange('B2').setValue(new Date ()); 
+
+  
+  /*
+  Focus on Today's Date training.
+  1.get the current date format 2019-05-01 YYYY-MM-dd
+  2. check column C, Date field match with current date
+  3. Focus on the cell.
+  */
+  var today= Utilities.formatDate(new Date(), "GMT+8", "yyyy-MM-dd"); //step 1 get current date 
+
+
+  
+  var sheet  = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Weekly");
+  var column = sheet.getRange("C" + ":" + "C").setNumberFormat("yyyy-MM-dd");  // step 2 check column C for dates 
+
+  
+  var values = column.getValues();
+     
+    
+  var row = 0; // 
+
+  for (var i=0;i<values.length;i++){//format all dates into yyyy-MM-dd from array
+    values[i]=Utilities.formatDate(new Date(values[i]), "GMT+8", "yyyy-MM-dd");
+       }
+       
+     
+
+  while ( values[row] !== today ) { //step 2 search for date that matches current date 
+  
+ 
+ row=row+1;
+
+  }
+  row=row+1;// if match add one as first cell starts with 0
+    
+     if (values[row][0] == today) {
+    row= row+1;
+       Browser.msgBox(values);
+
+           }
+  
+    var therow= "C" + row;
+// Browser.msgBox(therow); 
+ 
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Weekly").getRange(therow).activate();//step 3 focus today to the session of today 
+  
+  
+  /* MENU FOR BACKUP */
+    var ui = SpreadsheetApp.getUi();
+ 
+  ui.createMenu('Backup')
+      .addItem('HKBU','backup1')
+         .addItem('GSUITE','backup2')
+     
+  .addToUi();
+
+
+}
+
+function onEdit(e) {
+  
+  var COLUMNTOCHECK = 3;
+  var SHEETNAME = 'Annual'
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getActiveSheet();
+  //checks that we're on the correct sheet.
+  if( sheet.getSheetName() == SHEETNAME ) { 
+    var selectedCell = ss.getActiveCell();
+    //checks the column to ensure it is on the one we want to cause the date to appear.
+    if( selectedCell.getColumn() == COLUMNTOCHECK) { 
+      // Where you want the date time stamp offset from the input location. [row, column]
+    
+   // update Annual.Sheet last update 
+     SpreadsheetApp.getActiveSheet().getRange('B1').setValue(new Date ());
+    
+
+    }
+
+  }
+  
+  //if weekly sheet edit update last update
+var test=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Weekly").range.getA1Notation();
+//Browser.msgBox(test);
+    if( test) { //detect any changes from any sheets 
+       // SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Annual").getRange('B1').setValue(new Date ());
+     
+    }
+    
+   /****
+    When editing RMK, update HKBU, personal/roster/
+    ******/
+   var link="https://drive.google.com/open?id=1fMtoqptbemmuUGFIPZOcHVWJ5NAe0r8gmf9WuEDiCfQ";
+   var opensheet = SpreadsheetApp.openByUrl(link);
+
+    Browser.msgBox(opensheet);
+   // var sheet = spreadsheet.getActiveSpreadsheet().etSheetByName("Sheet1");
+  
+  //var test=SpreadsheetApp.openById("1fMtoqptbemmuUGFIPZOcHVWJ5NAe0r8gmf9WuEDiCfQ").getActiveSheet().getRange('B9').getValue();
+   // var text =sheet.getRange('A9').getValue();
+ 
+    
+}
+
+/**********
+on click with backup button, SAVE backup spreadsheet to HKBU/ backup/goolge_drive/personal/
+  
+  ************/
+  function backup1(){
+   var sheet = SpreadsheetApp.getActiveSpreadsheet();
+
+ 
+  
+  var destFolder = DriveApp.getFolderById("13_4rloFllPAIhMvdgYJ-idxFezUFnnCy"); 
+var newfile= DriveApp.getFileById(sheet.getId()).makeCopy(destFolder).setOwner("12676454@life.hkbu.edu.hk"); 
+
+    
+  
+
+       
+  }
+  
+  
+  function backup2(){
+     var sheet = SpreadsheetApp.getActiveSpreadsheet();
+
+    var dest2 =  DriveApp.getFolderById("1mAvLeh3negqeNc-YI5Vq2IB8xzAnOyy5"); // gsuite
+     var newfile2= DriveApp.getFileById(sheet.getId()).makeCopy(dest2);
+    newfile2.setOwner("ccalacs@goldenair.co.uk");
+  
+  }
+
+
+/************
+2019-05-19 Detect changes from any sheets, and set current date time or last update field B1 cell, 
+SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Weekly").getCurrentCell();
+
+2019-05-20, open sheet open, focus on current day and focus on current date's training session
+2019-05-22 add menu for back, and backup to google drive , trigger daily backup
+
+
+
+************/
