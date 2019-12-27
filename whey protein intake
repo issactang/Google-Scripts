@@ -1,0 +1,101 @@
+function onOpen(e) {
+  var spreadsheet = e.source;
+  var sheet = spreadsheet.getActiveSheet();
+  var lastRow = spreadsheet.getLastRow();
+  if (sheet.getMaxRows() == lastRow) {
+    sheet.appendRow([""]);
+  }
+  lastRow = lastRow + 1;
+  var range = sheet.getRange("B" + lastRow + ":B" + lastRow); // self defined row to focus , workout column
+  sheet.setActiveRange(range);
+
+  /* MENU FOR BACKUP */
+    var ui = SpreadsheetApp.getUi();
+ 
+  ui.createMenu('Backup')
+      .addItem('HKBU','backup1')
+         .addItem('GSUITE','backup2')
+     
+  .addToUi();
+
+}
+/**
+* Creates a Date Stamp if a column is edited.
+*/
+
+//CORE VARIABLES
+// The column you want to check if something is entered.
+var COLUMNTOCHECK = 2;
+// Where you want the date time stamp offset from the input location. [row, column]
+var DATETIMELOCATION = [0,-1];
+// Sheet you are working on
+var SHEETNAME = 'Sheet1'
+
+function onEdit(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getActiveSheet();
+  //checks that we're on the correct sheet.
+  if( sheet.getSheetName() == SHEETNAME ) { 
+    var selectedCell = ss.getActiveCell();
+    //checks the column to ensure it is on the one we want to cause the date to appear.
+    if( selectedCell.getColumn() == COLUMNTOCHECK) { 
+      var dateTimeCell = selectedCell.offset(DATETIMELOCATION[0],DATETIMELOCATION[1]);
+      dateTimeCell.setValue(new Date());
+      }
+
+     // IF Edited cell , update last update and set time to now 
+
+   // Offset Column Is B, lastupdate field is J1
+  //  e.range.offset(0,8).setValue(new Date ());
+     SpreadsheetApp.getActiveSpreadsheet().getRange('J1').setValue(new Date ());
+  }
+  
+  /****
+  When remaining reaches 0, record today's date
+  obtain start date,brand, serving and input to archive Datasheet
+  *****/
+  var remain =SpreadsheetApp.getActiveSheet().getRange('H7').getValue();// remaining on H3
+    // Browser.msgBox(remain);
+
+  
+  if(remain == "0"){
+    var brand = SpreadsheetApp.getActiveSheet().getRange('G3').getValue();
+
+    var starttime = SpreadsheetApp.getActiveSheet().getRange('H4').getValue();
+    var endtime =SpreadsheetApp.getActiveSheet().getRange('H5').getValue();
+    var serving = SpreadsheetApp.getActiveSheet().getRange('H3').getValue();
+
+
+      
+   SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Archive").appendRow([starttime,endtime,brand,serving])
+      Browser.msgBox("Product Archived, Choose new one");
+  }
+  
+}
+/**********
+on click with backup button, SAVE backup spreadsheet to HKBU/ backup/goolge_drive/personal/
+  
+  ************/
+  function backup1(){
+   var sheet = SpreadsheetApp.getActiveSpreadsheet();
+
+ 
+  
+  var destFolder = DriveApp.getFolderById("13_4rloFllPAIhMvdgYJ-idxFezUFnnCy"); 
+var newfile= DriveApp.getFileById(sheet.getId()).makeCopy(destFolder).setOwner("12676454@life.hkbu.edu.hk"); 
+
+    
+  
+
+       
+  }
+  
+  
+  function backup2(){
+     var sheet = SpreadsheetApp.getActiveSpreadsheet();
+
+    var dest2 =  DriveApp.getFolderById("1mAvLeh3negqeNc-YI5Vq2IB8xzAnOyy5"); // gsuite
+     var newfile2= DriveApp.getFileById(sheet.getId()).makeCopy(dest2);
+    newfile2.setOwner("ccalacs@goldenair.co.uk");
+  
+  }
