@@ -110,6 +110,8 @@ function onEdit(e) {
  var item=selectedCell.offset(0,1).getValue();//endtime
  var endtime=selectedCell.offset(0,2).getValue();//endtime
     
+   
+     
   var test=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Archive").appendRow([created,done,item,endtime]);//write to archive
   
    SpreadsheetApp.getActiveSpreadsheet().getActiveSheet().deleteRow(done_row); //delete record from TODO
@@ -133,13 +135,15 @@ function onEdit(e) {
  
  var created=selectedCell.offset(0,-3).getValue();
 
- var done=selectedCell;
+ var done="";
    var aLast = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getDataRange().getNumRows();
    var nextr=aLast+1;
- SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getRange('B'+nextr).insertCheckboxes();
+ var done=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getRange('B'+nextr).insertCheckboxes();
+ var created_w=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getRange('A'+nextr).setValue(created);
+ var item_w=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getRange('C'+nextr).setValue(item);
 
     
-  var test=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").appendRow([created,done,item]);//write to archive
+  //var test=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").appendRow([created,done,item]);//write to Daily
 
   
 
