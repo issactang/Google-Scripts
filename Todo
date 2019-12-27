@@ -136,7 +136,7 @@ function onEdit(e) {
  var done=selectedCell;
    var aLast = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getDataRange().getNumRows();
    var nextr=aLast+1;
- SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getRange('B'+nextr).insertCheckboxes().check();
+ SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getRange('B'+nextr).insertCheckboxes();
 
     
   var test=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").appendRow([created,done,item]);//write to archive
