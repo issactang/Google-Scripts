@@ -1,0 +1,123 @@
+/**********
+on click with backup button, SAVE backup spreadsheet to HKBU/ backup/goolge_drive/personal/
+  
+  ************/
+  function backup1(){
+   var sheet = SpreadsheetApp.getActiveSpreadsheet();
+
+ 
+  
+  var destFolder = DriveApp.getFolderById("13_4rloFllPAIhMvdgYJ-idxFezUFnnCy"); 
+var newfile= DriveApp.getFileById(sheet.getId()).makeCopy(destFolder).setOwner("12676454@life.hkbu.edu.hk"); 
+
+    
+  
+
+       
+  }
+  
+  
+  function backup2(){
+     var sheet = SpreadsheetApp.getActiveSpreadsheet();
+
+    var dest2 =  DriveApp.getFolderById("1mAvLeh3negqeNc-YI5Vq2IB8xzAnOyy5"); // gsuite
+     var newfile2= DriveApp.getFileById(sheet.getId()).makeCopy(dest2);
+    newfile2.setOwner("ccalacs@goldenair.co.uk");
+  
+  }
+
+function onOpen(e) {
+  var spreadsheet = e.source;
+  var sheet = spreadsheet.getActiveSheet();
+  var lastRow = spreadsheet.getLastRow();
+  if (sheet.getMaxRows() == lastRow) {
+    sheet.appendRow([""]);
+  }
+  lastRow = lastRow + 1;
+  var range = sheet.getRange("C" + lastRow + ":C" + lastRow); // self defined row to focus 
+  sheet.setActiveRange(range);
+  
+//ON open update the last accessed FIELD
+    SpreadsheetApp.getActiveSheet().getRange('F1').setValue(new Date ());
+
+  /* MENU FOR BACKUP */
+    var ui = SpreadsheetApp.getUi();
+ 
+  ui.createMenu('Backup')
+      .addItem('HKBU','backup1')
+         .addItem('GSUITE','backup2')
+     
+  .addToUi();
+}
+
+
+
+function onEdit(e) {
+
+   var spreadsheet = e.source;
+  var COLUMNTOCHECK = 3;
+  var SHEETNAME = 'TODO'
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getActiveSheet();
+  //checks that we're on the correct sheet.
+  if( sheet.getSheetName() == SHEETNAME || sheet.getSheetName() == 'Daily' ) { 
+    var selectedCell = ss.getActiveCell();
+    //checks the column to ensure it is on the one we want to cause the date to appear.
+    if( selectedCell.getColumn() == COLUMNTOCHECK) { 
+      // Where you want the date time stamp offset from the input location. [row, column]
+   
+      
+      var dateTimeCell = selectedCell.offset(0,-2);
+         
+      if(dateTimeCell.getValue()== "" ){//check if the field is empty before stamping
+      dateTimeCell.setValue(new Date());
+      }
+      selectedCell.offset(0,-1).insertCheckboxes(); //auto add checkbox
+     
+
+
+
+   // Offset Column Is B, lastupdate field is J1
+     SpreadsheetApp.getActiveSheet().getRange('B1').setValue(new Date ());
+    
+
+    }
+
+  }
+     
+  
+ 
+  /***
+    First Input in TODO sheet
+    when item is completed, the check mark tick, b column is true, insert completed Time
+    Move the record to Archive 
+    Remove the Record from Todo
+    */
+    
+  var done_c =2;
+   if( selectedCell.getColumn() == done_c) { 
+
+     var done=selectedCell.getValue();
+     var done_row=selectedCell.getRowIndex();
+     //Browser.msgBox(done_row);
+        if(done) {
+        selectedCell.offset(0,2).setValue(new Date()); // when done is true, set completed time to now 
+   
+ var created=selectedCell.offset(0,-1).getValue();//created
+ var item=selectedCell.offset(0,1).getValue();//endtime
+ var endtime=selectedCell.offset(0,2).getValue();//endtime
+    
+  var test=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Archive").appendRow([created,done,item,endtime]);//write to archive
+  
+   SpreadsheetApp.getActiveSpreadsheet().getActiveSheet().deleteRow(done_row); //delete record from TODO
+
+        
+      }
+     
+   
+                                             }
+ backup1();
+ backup2();
+
+}
+
