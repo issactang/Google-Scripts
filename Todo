@@ -1,3 +1,53 @@
+  
+       /*
+       Routine Tab, Click Button to Add Route to Daily TODO tab.
+       1. Count the number of rows of data
+       2. for loop, loop til last row of data, created time, checkbox and item
+       
+       */
+       function dailytodo(){
+   
+       //Get rows of data to be added to the DAILY todo list
+       var lastrow=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Routine").getDataRange().getNumRows();
+       var numofrows=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Routine").getRange('B3'+':'+'B'+lastrow).getNumRows();
+       
+       //Validation, if no data, display error msg and exit.
+      
+       if(numofrows==2 ){// header of two row not counted
+                     Browser.msgBox('NO Routine Work, Please add.');
+                     return;
+
+           }
+       
+       //Get last row in Daily tab
+       var lastrow_d=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getDataRange().getNumRows();
+       var nextrow=lastrow_d+1; 
+      
+       //write data to DAILY tab until last row of Routine Tab
+       /*
+       created -  get current time , start from last row+1
+       chkbox - insert checkbox , start from last row+1
+       item - write item from routine to daily todo until last row of data from routine tab., 
+       */
+  var i;
+       for(i=3;i<=lastrow;i++) {
+       var created = new Date();
+       created=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getRange('A'+nextrow).setValue(created);
+       var chkbox=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getRange('B'+nextrow).insertCheckboxes();
+       var item_data=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Routine").getRange('B'+i).getValue();
+       var item=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getRange('C'+nextrow).setValue(item_data);
+ 
+    
+       
+       if(i==numofrows){
+              Browser.msgBox('Daily TODO list ADDED.');
+                         }
+                 nextrow++;
+                 
+                               }
+                               
+       }
+
 /**********
 on click with backup button, SAVE backup spreadsheet to HKBU/ backup/goolge_drive/personal/
   
@@ -154,6 +204,7 @@ function onEdit(e) {
         
       }
        }
+     
      
    
                                             
