@@ -1,0 +1,162 @@
+
+function onOpen() {
+  SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
+      .createMenu('Bulk Purchase')
+      .addItem('Issue', 'getInput')
+      .addToUi();
+
+  
+  
+}
+
+function getInput(){
+ 
+var ui = SpreadsheetApp.getUi();
+var result = ui.prompt("Issue Coupons?",ui.ButtonSet.OK_CANCEL);
+var coupons = result.getResponseText(); // number of coupons
+  //Browser.msgBox("Issue"+coupons+"Coupons");
+    var button = result.getSelectedButton();
+  var text = result.getResponseText();
+    if (button == ui.Button.OK && text >0) {
+    // User clicked "OK".
+     // Browser.msgBox("Issue"+text+"Coupons");
+      /*
+      Solution A: Copy the selected number of Coupon URL in ClipBoard
+  --> Solution B: Copy the selected number of Coupon URL and send email to reception TST.
+            */
+      var i;
+      var bLast = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Main").getDataRange().getNumRows();
+     
+           var nextrow=2;
+     
+            // Browser.msgBox(a);
+       var delrow=nextrow;
+      for(i=0;i<text;i++) {
+        var date= new Date(); 
+        //var date= Utilities.formatDate(new Date(), "GMT+8", "yyyy-MM-dd HH:MM:SS "); //step 1 get current date 
+        //var gtime=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Main").getRange('A'+nextrow).getValue(); //time
+        var acid=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Main").getRange('D'+2).getValue(); //coupon id
+        var acname=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Main").getRange('E'+2).getValue(); //coupon name
+       var curl;
+        if(i>0){
+          curl=curl+'\n';
+        //  Browser.msgBox(curl);
+       curl=curl+SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Main").getRange('F'+2).getValue();
+        }else{
+        curl=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Main").getRange('F'+2).getValue(); //coupon url
+           }
+       
+       
+        /*Move data to issued*/
+         var aLast = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Issued").getDataRange().getNumRows();
+      var nextr=aLast+1; 
+  
+      var ntime=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Issued").getRange('A'+nextr).setValue(date);//Time
+      var cid=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Issued").getRange('B'+nextr).setValue(acid);//couponID
+      var cname=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Issued").getRange('C'+nextr).setValue(acname);//couponName
+      var done=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Issued").getRange('G'+nextr).insertCheckboxes();// CMS input? checkbox
+      
+     SpreadsheetApp.getActiveSpreadsheet().getSheetByName("MAIN").deleteRow(2); //delete record from MAIN, record moves up, delete the top one
+    
+        
+       nextrow++; // counter ++ after remove the record from MAIN
+       
+        
+          }
+var emailAddress="reception.tst@trinitymedical.com.hk";
+// Send Alert Email.
+     
+var message = 'This is the generated QR Codes! TOTAL='+text+'\n'+curl; // Second column
+var subject = date+' '+acname+'-Bulk Generate QR Codes-';
+MailApp.sendEmail(emailAddress, subject, message);
+      
+      
+   var ui = SpreadsheetApp.getUi(); // Same variations.
+
+  var result = ui.alert(
+     'Select All, Copy, Send Email',
+     curl,
+      ui.ButtonSet.OK);
+   //  Browser.msgBox(curl+"\n"+"");
+      
+      
+  } 
+  
+ 
+}// getInput END function
+
+
+
+function onEdit(e) {
+/*
+Tick the checkbox for Issue, the Created Date will be generated , format YYYY-MM-DD HH:MM:SS
+*/
+
+
+  
+  var COLUMNTOCHECK = 2; // second column
+  var SHEETNAME = 'Main';
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getActiveSheet();
+  //checks that we're on the correct sheet.
+  if( sheet.getSheetName() == SHEETNAME || sheet.getSheetName() == 'Main' ) { 
+    var selectedCell = ss.getActiveCell();
+    //checks the column to ensure it is on the one we want to cause the date to appear.
+      var issue=selectedCell.getValue();
+   
+  
+    
+    /*
+   INPUT # of coupons from
+    
+    */
+    if(issue === true) { // if 'Issue' checkbox is true , checked 
+      
+    
+      // Where you want the date time stamp offset from the input location. [row, column]
+   
+      
+      var dateTimeCell = selectedCell.offset(0,-1);
+       /*
+        after Issued is check
+        send to Issued Worksheet
+        Timestamp,Coupon ID, Coupon Name, Referral Source,	Billing Source,	Visting No
+        
+        */
+      if(dateTimeCell.getValue()== "" ){//check if the field is empty before stamping
+        dateTimeCell.setValue(new Date());
+        
+           }
+     
+      
+      /*SINGLE INPUT, when ISSUE CHECK BOX*/
+      /*WRITE DATA TO Issued WorkSheet, */
+      var timestamp=selectedCell.offset(0,-1).getValue(); //Time
+       var couponid=selectedCell.offset(0,2).getValue();//coupon ID
+       var couponname=selectedCell.offset(0,3).getValue();//coupon name
+      var aLast = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Issued").getDataRange().getNumRows();
+      var nextr=aLast+1; 
+  
+      var ntime=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Issued").getRange('A'+nextr).setValue(timestamp);//Time
+      var cid=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Issued").getRange('B'+nextr).setValue(couponid);//couponID
+      var cname=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Issued").getRange('C'+nextr).setValue(couponname);//couponName
+      var done=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Issued").getRange('G'+nextr).insertCheckboxes();// CMS input? checkbox
+      
+       var moveto_row=selectedCell.getRowIndex();
+      SpreadsheetApp.getActiveSpreadsheet().getActiveSheet().deleteRow(moveto_row); //delete record from MAIN
+      
+     
+       }
+  }
+              
+      
+
+ } // close onEdit onEdit(e)
+  
+ 
+     
+  
+
+
+
+     
