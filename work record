@@ -52,38 +52,42 @@ function onOpen(e) {
 
 
 
-function onEdit(e) {
+function onEdit() {
 
-   var spreadsheet = e.source;
-  var COLUMNTOCHECK = 4;
+   //var spreadsheet = e.source;
+  var COLUMNTOCHECK = 5; //Items, first row count as 1
   var SHEETNAME = 'main'
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getActiveSheet();
   //checks that we're on the correct sheet.
-  if( sheet.getSheetName() == SHEETNAME ) { 
-    var selectedCell = ss.getActiveCell();
+  if( sheet.getSheetName() == SHEETNAME ) 
+    { 
+        var selectedCell = ss.getActiveCell();
     //checks the column to ensure it is on the one we want to cause the date to appear.
-    if( selectedCell.getColumn() == COLUMNTOCHECK) { 
-      // Where you want the date time stamp offset from the input location. [row, column]
-   
+       if( selectedCell.getColumn() == COLUMNTOCHECK) 
+       { 
+          if( selectedCell.getValue()!= "")
+          { // check field not empty
+             selectedCell.offset(0,1).insertCheckboxes(); //auto add checkbox on start field
+             selectedCell.offset(0,2).insertCheckboxes(); //auto add checkbox on done field
+             
+          
+              if(   SpreadsheetApp.getActiveSheet().getRange('A'+selectedCell.getRowIndex()).getValue()=="")// check if project is empty
+                {
+                Browser.msgBox("Choose Project!");
+                }
+            }
       
-      var dateTimeCell = selectedCell.offset(0,-3);
-         
-      if(dateTimeCell.getValue()== "" ){//check if the field is empty before stamping
-      dateTimeCell.setValue(new Date());
-      }
-      selectedCell.offset(0,1).insertCheckboxes(); //auto add checkbox on done field
-     
-
+ 
 
 
    // Offset Column Is B, lastupdate field is J1
      SpreadsheetApp.getActiveSheet().getRange('B1').setValue(new Date ());
     
 
-    }
+        }
     
-  }
+     }
      
   
  
@@ -96,89 +100,153 @@ function onEdit(e) {
 -add curren date to completed
     */
     
-  var done_c =5;
-   if( selectedCell.getColumn() == done_c) { 
+  var done_c =7;
+  var start_c=6;
+  //checkbox Start opertaions
+  /*
+  When checkbox start checked, TRUE
+  add timestamp to created
+  */
 
-     var done=selectedCell.getValue();
-     var done_row=selectedCell.getRowIndex();
-     //Browser.msgBox(done_row);
-        if(done) {
-        selectedCell.offset(0,-3).setValue(new Date()); // when done is true, set completed time to now 
+     if( selectedCell.getColumn() == start_c) 
+        { 
+          var start=selectedCell.getValue();
+          var start_row=selectedCell.getRowIndex();
+
+          if(start) 
+            {
+                if(selectedCell.offset(0,-4).getValue() =="")
+                { // check if created is empty
+                    selectedCell.offset(0,-4).setValue(new Date()); // when created is true, set completed time to now 
+                 }
+              }
+  
+          }
+ 
+
+
+
+  //checkbox Done operations
+   if( selectedCell.getColumn() == done_c) 
+    { 
+
+       var done=selectedCell.getValue();
+       var done_row=selectedCell.getRowIndex();
+     
+
+        if(done ) 
+        {
+             if( selectedCell.offset(0,-4).getValue()==""){//if end time is set, just do payroll calculation, if end time not set, set timesstamp
+                selectedCell.offset(0,-4).setValue(new Date()); // when done is true, set completed time to now 
+            }
+      
+       //set payrate formula 
+          var payratef="=VLOOKUP(A"+selectedCell.getRowIndex()+",data!$A$2:$B$4,2,false)";
+        SpreadsheetApp.getActiveSheet().getRange('J'+selectedCell.getRowIndex()).setFormula(payratef);
           
+          // set duration formula
+          var therow=selectedCell.getRowIndex();
+          var duf="=C"+therow+"-B"+therow;
+          //var duf="=time(hour(C"+therow+"),minute(C"+therow+"),second(C"+therow+"))-time(hour(B"+therow+"),minute(B"+therow+"),second(B"+therow+"))";
+            SpreadsheetApp.getActiveSheet().getRange('L'+selectedCell.getRowIndex()).setFormula(duf); 
+         
+   var starttime=selectedCell.offset(0,-5).getValues();
+          var endtime=selectedCell.offset(0,-4).getValues();
+          var timediff=parseInt(endtime-starttime);
+          
+           var date1 = new Date(starttime); 
+var date2 = new Date(endtime); 
+  
+// To calculate the time difference of two dates 
+var diff = date2.getTime() - date1.getTime(); 
+
+ var hour = Math.floor(diff / 1000 / 60 / 60);
+ 
+
+    diff -= hour * 1000 * 60 * 60;
+    var min = Math.floor(diff / 1000 / 60);
+     diff -= Math.floor(min * 1000 * 60) ;
+    var sec=diff/1000;
+ 
+
+// To calculate the no. of days between two dates 
+//var Difference_In_Days = diff / (1000 * 3600 * 24); 
+
+   
           /*
           When done, calculate the pay rate ; 2019-12-27
-          C1 is defined as hourly pay
+          J+curret row is pay rate, the pay rate is based on row 1 vlookup data!A2:B
           B2-A2 using time function calculate the duration
           from duration, determine number of hours 
           if duration <=30min, no hour
           if duration >=30min one hour pay
           LIMITATION--- valid for 24 hours only. for work overnight 2300 cutoff manual calculation
+          
+          2020-02-01; change log,
+          Use accurate Calculation method
+          Get Hour Rate by Calculating HR MIN SEC and get the PAy RATE
                     
           */
 
           
-          var starttime=selectedCell.offset(0,-4).getValues();
-          var endtime=selectedCell.offset(0,-3).getValues();
-       
-          var starttime_H = Utilities.formatDate(new Date(starttime), "GMT+8", "HH"); // format the start time, put in the date function
-          var starttime_M = Utilities.formatDate(new Date(starttime), "GMT+8", "mm");
-          //var starttime_H = Utilities.formatDate(new Date(starttime), "GMT+8", "HH:mm:ss"); // format the start time, put in the date function
-          var endtime_H = Utilities.formatDate(new Date(endtime), "GMT+8", "HH"); // format the end time, put in the date function
-        var endtime_M = Utilities.formatDate(new Date(endtime), "GMT+8", "m"); // format the end time, put in the date function
-        var hour=endtime_H-starttime_H;
-        var min="";
-     
-          if(parseInt(endtime_M,10) <60){ // if end time min less than 60 mins +60 for calculation
-            endtime_M=parseInt(endtime_M,10)+60; //parseInt change string to INT
-             min=parseInt(endtime_M,10)-parseInt(starttime_M,10);
-            
-          }else{
-          min=parseInt(endtime_M,10)-parseInt(starttime_M,10);
-      
-          }
-             //Browser.msgBox('min-'+min);
-          if(parseInt(min,10)>=30){
-            //round off calculation of work hours, one hr calc advanced
-           
-          }else{
-          hour=hour-1; // due to direct calc of hours one hour advance
-          }
-              //Browser.msgBox(hour+':'+min);
-          var payrate= SpreadsheetApp.getActiveSheet().getRange('C1').getValue();
-          var pay = payrate * hour;
-           selectedCell.offset(0,3).setValue(pay) //calculate pay according to hour
-          
-           //Browser.msgBox(pay);
-          
-      
-          
-   
 
- 
-        
+         //Browser.msgBox(hour+':'+min+':'+sec);
+          var payrate= SpreadsheetApp.getActiveSheet().getRange('J'+selectedCell.getRowIndex()).getValue();
+          var pay = payrate * hour+(min/60)*payrate+(sec/(60*60))*payrate;
+          selectedCell.offset(0,4).setValue(pay) //calculate pay according to hour
+          //Browser.msgBox(pay);
+     
+       
       }
      
 
-                                           }
+    } //checkbox done ops 
    /* *****
  after REC payment, input payment REC,
  auto input current date of REC payment.
  
  */
-       var REC =7; // amount REC
-   if( selectedCell.getColumn() == REC) { 
+       var REC =9; // amount REC
+   if( selectedCell.getColumn() == REC) 
+   { 
 
-     var done=selectedCell.getValue();
-     var done_row=selectedCell.getRowIndex();
-     //Browser.msgBox(done_row);
-        if(done) {
-        selectedCell.offset(0,-1).setValue(new Date()); // when done is true, set completed time to now 
+      var done=selectedCell.getValue();
+      var done_row=selectedCell.getRowIndex();
+      //Browser.msgBox(done_row);
+       
+       
+           if(selectedCell.offset(0,-1).getValue()=="") {//write only if date is clear
+               selectedCell.offset(0,-1).setValue(new Date()); // when done is true, set completed time to now 
+           }
    
-
- 
-        
-      }
+              
  backup1();
  backup2();
-}
-}
+                       }
+} // function on edit
+/*
+Change Log
+2020-01-25 
+  --> Checkbox start , created timestamp, check if created is empty, if not empty no action
+  --> checkbox end, completed timestamp, check if completed is empty, if not empty no action, calculation duration, round off +-30mins rule and calculate renumeration
+  --> Input Amount REC, PAID DATE will be stamped today's date 
+  --> Math.abs for hour
+2020-02-01
+  Improved Accuraccy in PayRate
+ -->Endtime-start time
+  Difference shown in ms.  to get HOUR
+  hour=diff/1000*60*60
+  min=diff/1000*60
+  sec=diff/1000*
+  To get day ; diff/1000*24
+  -->Ensure REC date wont change if date is already there
+  --> Get Balance, =sum(K2:K)-sum(I:I) 
+  -->Fix Duration calulator , set formula for L col as e.g. B7-A7 and sests format as  duration
+                             sum the time of this row if REC is Empty ( the projects still working and not yet paid) set num format as duration
+2020-02-01
+xxxx
+             
+  ...
+  
+
+*/
