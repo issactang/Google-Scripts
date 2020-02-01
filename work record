@@ -1,4 +1,131 @@
+  
+  function autosort(){
+  
+   if (SpreadsheetApp.getActiveSpreadsheet().getActiveSheet().getSheetName()=='TODO') {
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("TODO").getRange('E3').activate().getFilter().sort(5, true);
+    }
+  }
+  function getDuration(start ,end){
+  //get date string from excel values and calculate hour time sec, return as string
+  
+  var diff=end-start;
+  var hour = Math.floor(diff / 1000 / 60 / 60);
+ 
 
+    diff -= hour * 1000 * 60 * 60;
+    var min = Math.floor(diff / 1000 / 60);
+     diff -= Math.floor(min * 1000 * 60) ;
+    var sec=diff/1000;
+    var duration;
+    return duration=hour+":"+min+":"+sec;
+  }
+      function cal(){
+      /*
+      1. Prompt Input Item
+      2. Prompt Date
+      3. Prompt The ID and successfully ADDED to calendar
+      */
+      
+            /*When New Item is created
+      1. created timestamp
+      2. create a calendar event, personal calendar
+      */
+     var ui = SpreadsheetApp.getUi();
+var result = ui.prompt("Title?",ui.ButtonSet.OK_CANCEL);
+var result2 = ui.prompt("Date YYYY-MM-DD, EMPTY=TODAY?",ui.ButtonSet.OK_CANCEL);
+var title = result.getResponseText(); 
+
+  var date_input = result2.getResponseText(); 
+  var date;
+ 
+   if(date_input === "" ){ // if empty = today , else input
+                date= new Date(); 
+             
+   
+       }else{
+              date = new Date(date_input);
+             
+             }
+    var button = result.getSelectedButton();
+
+ 
+      //var calendarId="issactang@gmail.com";// define calendar items
+ 
+      var location="";
+      var guests="";
+      var description="Generated from TODO google sheets.";
+         var event = {
+          'location': location,
+          'description': description,
+          'guests':guests +',',
+          'sendInvites': 'True',
+};
+      
+
+
+  
+   var cal=CalendarApp.getDefaultCalendar().createAllDayEvent(title,date,event);
+ui.alert(
+     'Personal Calendar Added',
+    date+"\n"+title,
+      ui.ButtonSet.OK);
+      }
+      
+      /*
+       Routine Tab, Click Button to Add Route to Daily TODO tab.
+       1. Count the number of rows of data
+       2. for loop, loop til last row of data, created time, checkbox and item
+       
+       */
+     
+       function dailytodo(){
+   
+       //Get rows of data to be added to the DAILY todo list
+       var lastrow=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Routine").getDataRange().getNumRows();
+       var numofrows=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Routine").getRange('B3'+':'+'B'+lastrow).getNumRows();
+       
+       //Validation, if no data, display error msg and exit.
+      
+       if(numofrows==2 ){// header of two row not counted
+                     Browser.msgBox('NO Routine Work, Please add.');
+                     return;
+
+           }
+       
+       //Get last row in Daily tab
+       var lastrow_d=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getDataRange().getNumRows();
+       var nextrow=lastrow_d+1; 
+      
+       //write data to DAILY tab until last row of Routine Tab
+       /*
+       created -  get current time , start from last row+1
+       chkbox - insert checkbox , start from last row+1
+       item - write item from routine to daily todo until last row of data from routine tab., 
+       */
+  var i;
+       for(i=3;i<=lastrow;i++) {
+       var created = new Date();
+       created=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getRange('A'+nextrow).setValue(created);
+       var chkbox=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getRange('B'+nextrow).insertCheckboxes();
+       var item_data=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Routine").getRange('B'+i).getValue();
+       var item=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getRange('C'+nextrow).setValue(item_data);
+ 
+    
+       
+       if(i==numofrows){
+              Browser.msgBox('Daily TODO list ADDED.');
+                         }
+                 nextrow++;
+                 
+                               }
+                               
+       }
+
+/**********
+on click with backup button, SAVE backup spreadsheet to HKBU/ backup/goolge_drive/personal/
+  
+  ************/
+ 
 
 function onOpen(e) {
   var spreadsheet = e.source;
@@ -12,215 +139,149 @@ function onOpen(e) {
   sheet.setActiveRange(range);
   
 //ON open update the last accessed FIELD
-    SpreadsheetApp.getActiveSheet().getRange('B1').setValue(new Date ());
+    SpreadsheetApp.getActiveSheet().getRange('F1').setValue(new Date ());
 
   /* MENU FOR BACKUP */
-    var ui = SpreadsheetApp.getUi();
+   /* var ui = SpreadsheetApp.getUi();
  
   ui.createMenu('Backup')
       .addItem('HKBU','backup1')
          .addItem('GSUITE','backup2')
      
   .addToUi();
+  */
+    /* MENU FOR Calendar */
+    var ui = SpreadsheetApp.getUi();
+ 
+  ui.createMenu('Calendar')
+      .addItem('ADD','cal')
+        .addToUi();
+  
 }
 
 
 
-function onEdit() {
+function onEdit(e) {
 
    //var spreadsheet = e.source;
-  var COLUMNTOCHECK = 5; //Items, first row count as 1
-  var SHEETNAME = 'main'
+  var COLUMNTOCHECK = 3;
+  var SHEETNAME = 'TODO'
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getActiveSheet();
   //checks that we're on the correct sheet.
-  if( sheet.getSheetName() == SHEETNAME ) 
-    { 
-        var selectedCell = ss.getActiveCell();
+  if( sheet.getSheetName() == SHEETNAME || sheet.getSheetName() == 'Daily' ) { 
+    var selectedCell = ss.getActiveCell();
     //checks the column to ensure it is on the one we want to cause the date to appear.
-       if( selectedCell.getColumn() == COLUMNTOCHECK) 
-       { 
-          if( selectedCell.getValue()!= "")
-          { // check field not empty
-             selectedCell.offset(0,1).insertCheckboxes(); //auto add checkbox on start field
-             selectedCell.offset(0,2).insertCheckboxes(); //auto add checkbox on done field
-             
-          
-              if(   SpreadsheetApp.getActiveSheet().getRange('A'+selectedCell.getRowIndex()).getValue()=="")// check if project is empty
-                {
-                Browser.msgBox("Choose Project!");
-                }
-            }
+    if( selectedCell.getColumn() == COLUMNTOCHECK) { 
+      // Where you want the date time stamp offset from the input location. [row, column]
+   
       
- 
+      var dateTimeCell = selectedCell.offset(0,-2);
+
+
+
+         
+      if(dateTimeCell.getValue()== "" ){//check if the field is empty before stamping
+      dateTimeCell.setValue(new Date());
+      }
+      selectedCell.offset(0,-1).insertCheckboxes(); //auto add checkbox for done
+      
+      if(sheet.getSheetName() == SHEETNAME){ //ensure checkbox for move to daily tab is shown in TODO tab only
+      selectedCell.offset(0,1).insertCheckboxes();// auto add checkbox for move to DAILY tab 
+      }
+      
+     
+
 
 
    // Offset Column Is B, lastupdate field is J1
-     SpreadsheetApp.getActiveSheet().getRange('B1').setValue(new Date ());
+    // SpreadsheetApp.getActiveSheet().getRange('B1').setValue(new Date ());
     
 
-        }
-    
-     }
+    }
+
+  }
      
   
  
   /***
-  1.upon create, input on item field
--autofill created
--create checkbox for done
-
-2.if done checkbox is tick
--add curren date to completed
+    First Input in TODO sheet
+    when item is completed, the check mark tick, b column is true, insert completed Time
+    Move the record to Archive 
+    Remove the Record from Todo
     */
     
-  var done_c =7;
-  var start_c=6;
-  //checkbox Start opertaions
-  /*
-  When checkbox start checked, TRUE
-  add timestamp to created
-  */
+  var done_c =2;
+   if( selectedCell.getColumn() == done_c) { 
 
-     if( selectedCell.getColumn() == start_c) 
-        { 
-          var start=selectedCell.getValue();
-          var start_row=selectedCell.getRowIndex();
-
-          if(start) 
-            {
-                if(selectedCell.offset(0,-4).getValue() =="")
-                { // check if created is empty
-                    selectedCell.offset(0,-4).setValue(new Date()); // when created is true, set completed time to now 
-                 }
-              }
-  
-          }
- 
-
-
-
-  //checkbox Done operations
-   if( selectedCell.getColumn() == done_c) 
-    { 
-
-       var done=selectedCell.getValue();
-       var done_row=selectedCell.getRowIndex();
-     
-
-        if(done ) 
-        {
-             if( selectedCell.offset(0,-4).getValue()==""){//if end time is set, just do payroll calculation, if end time not set, set timesstamp
-                selectedCell.offset(0,-4).setValue(new Date()); // when done is true, set completed time to now 
-            }
-      
-       //set payrate formula 
-          var payratef="=VLOOKUP(A"+selectedCell.getRowIndex()+",data!$A$2:$B$4,2,false)";
-        SpreadsheetApp.getActiveSheet().getRange('J'+selectedCell.getRowIndex()).setFormula(payratef);
-          
-          // set duration formula
-          var therow=selectedCell.getRowIndex();
-          var duf="=C"+therow+"-B"+therow;
-          //var duf="=time(hour(C"+therow+"),minute(C"+therow+"),second(C"+therow+"))-time(hour(B"+therow+"),minute(B"+therow+"),second(B"+therow+"))";
-            SpreadsheetApp.getActiveSheet().getRange('L'+selectedCell.getRowIndex()).setFormula(duf); 
-         
-   var starttime=selectedCell.offset(0,-5).getValues();
-          var endtime=selectedCell.offset(0,-4).getValues();
-          var timediff=parseInt(endtime-starttime);
-          
-           var date1 = new Date(starttime); 
-var date2 = new Date(endtime); 
-  
-// To calculate the time difference of two dates 
-var diff = date2.getTime() - date1.getTime(); 
-
- var hour = Math.floor(diff / 1000 / 60 / 60);
- 
-
-    diff -= hour * 1000 * 60 * 60;
-    var min = Math.floor(diff / 1000 / 60);
-     diff -= Math.floor(min * 1000 * 60) ;
-    var sec=diff/1000;
- 
-
-// To calculate the no. of days between two dates 
-//var Difference_In_Days = diff / (1000 * 3600 * 24); 
-
+     var done=selectedCell.getValue();
+     var done_row=selectedCell.getRowIndex();
+     //Browser.msgBox(done_row);
+        if(done) {
+        selectedCell.offset(0,2).setValue(new Date()); // when done is true, set completed time to now 
    
-          /*
-          When done, calculate the pay rate ; 2019-12-27
-          J+curret row is pay rate, the pay rate is based on row 1 vlookup data!A2:B
-          B2-A2 using time function calculate the duration
-          from duration, determine number of hours 
-          if duration <=30min, no hour
-          if duration >=30min one hour pay
-          LIMITATION--- valid for 24 hours only. for work overnight 2300 cutoff manual calculation
-          
-          2020-02-01; change log,
-          Use accurate Calculation method
-          Get Hour Rate by Calculating HR MIN SEC and get the PAy RATE
-                    
-          */
+   
+ var created=selectedCell.offset(0,-1).getValue();//created
+ var item=selectedCell.offset(0,1).getValue();//endtime
+ var endtime=selectedCell.offset(0,2).getValue();//endtime
+var duration;
+duration=getDuration(created,endtime);
+ //parse to hh:mm:ss format
 
-          
-
-         //Browser.msgBox(hour+':'+min+':'+sec);
-          var payrate= SpreadsheetApp.getActiveSheet().getRange('J'+selectedCell.getRowIndex()).getValue();
-          var pay = payrate * hour+(min/60)*payrate+(sec/(60*60))*payrate;
-          selectedCell.offset(0,4).setValue(pay) //calculate pay according to hour
-          //Browser.msgBox(pay);
      
-       
+  var test=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Archive").appendRow([created,done,item,endtime,duration]);//write to archive
+  
+   SpreadsheetApp.getActiveSpreadsheet().getActiveSheet().deleteRow(done_row); //delete record from TODO
+
+        
       }
-     
+       }
+      /*
+      When checkbox Column D, MOVE TO Daily,
+      */
+      var moveto_d =4; // col D checkbox for moving to Daily
+      if( selectedCell.getColumn() == moveto_d) { 
 
-    } //checkbox done ops 
-   /* *****
- after REC payment, input payment REC,
- auto input current date of REC payment.
- 
- */
-       var REC =9; // amount REC
-   if( selectedCell.getColumn() == REC) 
-   { 
-
-      var done=selectedCell.getValue();
-      var done_row=selectedCell.getRowIndex();
-      //Browser.msgBox(done_row);
+     var moveto=selectedCell.getValue();
+     var moveto_row=selectedCell.getRowIndex();
+     //Browser.msgBox(moveto_row);
+        if(moveto) {
        
-       
-           if(selectedCell.offset(0,-1).getValue()=="") {//write only if date is clear
-               selectedCell.offset(0,-1).setValue(new Date()); // when done is true, set completed time to now 
-           }
    
-              
+ var item=selectedCell.offset(0,-1).getValue();
+ 
+ var created=selectedCell.offset(0,-3).getValue();
+
+ var done="";
+   var aLast = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getDataRange().getNumRows();
+   var nextr=aLast+1;
+ var done=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getRange('B'+nextr).insertCheckboxes();
+ var created_w=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getRange('A'+nextr).setValue(created);
+ var item_w=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").getRange('C'+nextr).setValue(item);
+
+    
+  //var test=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Daily").appendRow([created,done,item]);//write to Daily
+
+  
+
+  
+  
+   SpreadsheetApp.getActiveSpreadsheet().getActiveSheet().deleteRow(moveto_row); //delete record from TODO
+
+        
+      }
+       }
+     
+     
+   
+/*                                     
  backup1();
  backup2();
-                       }
-} // function on edit
-/*
-Change Log
-2020-01-25 
-  --> Checkbox start , created timestamp, check if created is empty, if not empty no action
-  --> checkbox end, completed timestamp, check if completed is empty, if not empty no action, calculation duration, round off +-30mins rule and calculate renumeration
-  --> Input Amount REC, PAID DATE will be stamped today's date 
-  --> Math.abs for hour
-2020-02-01
-  Improved Accuraccy in PayRate
- -->Endtime-start time
-  Difference shown in ms.  to get HOUR
-  hour=diff/1000*60*60
-  min=diff/1000*60
-  sec=diff/1000*
-  To get day ; diff/1000*24
-  -->Ensure REC date wont change if date is already there
-  --> Get Balance, =sum(K2:K)-sum(I:I) 
-  -->Fix Duration calulator , set formula for L col as e.g. B7-A7 and sests format as  duration
-                             sum the time of this row if REC is Empty ( the projects still working and not yet paid) set num format as duration
-2020-02-01
-xxxx
-             
-  ...
-  
+ */
 
+}
+
+/*
+2019-12-28 -- ADDED checkbox at TODO tab, the function is when checked, append DAILY TAB then deletes from TODO tab
+2020-01-12 ADDED add item to google calendar all day event 
 */
