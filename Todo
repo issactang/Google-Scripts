@@ -1,6 +1,6 @@
   
        /*
-       Routine Tab, Click Button to Add Route to Daily TODO tab.1
+       Routine Tab, Click Button to Add Route to Daily TODO tab.
        1. Count the number of rows of data
        2. for loop, loop til last row of data, created time, checkbox and item
        
