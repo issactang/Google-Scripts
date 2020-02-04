@@ -1,10 +1,102 @@
   
-       /*
+  function autosort(){
+  
+   if (SpreadsheetApp.getActiveSpreadsheet().getActiveSheet().getSheetName()=='TODO') {
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("TODO").getRange('E3').activate().getFilter().sort(5, true);
+    }
+  }
+  function getDuration(start ,end){
+  //get date string from excel values and calculate hour time sec, return as string
+  
+  var diff=end-start;
+  var hour = Math.floor(diff / 1000 / 60 / 60);
+ 
+
+    diff -= hour * 1000 * 60 * 60;
+    var min = Math.floor(diff / 1000 / 60);
+     diff -= Math.floor(min * 1000 * 60) ;
+    var sec=diff/1000;
+    var duration;
+    return duration=hour+":"+min+":"+sec;
+  }
+      function cal(){
+      /*
+      1. Prompt Input Item
+      2. Prompt Date
+      3. Prompt The ID and successfully ADDED to calendar
+      */
+      
+            /*When New Item is created
+      1. created timestamp
+      2. create a calendar event, personal calendar
+      */
+     var ui = SpreadsheetApp.getUi();
+var result = ui.prompt("Title?",ui.ButtonSet.OK_CANCEL);
+var result2 = ui.prompt("Date YYYY-MM-DD, EMPTY=TODAY?",ui.ButtonSet.OK_CANCEL);
+var r3= ui.prompt("Time HHmm?",ui.ButtonSet.OK_CANCEL);
+var title = result.getResponseText(); 
+
+  var date_input = result2.getResponseText(); 
+  var starttime=r3.getResponseText();
+  var first=starttime.slice(0,2);
+   var onehourlater=parseInt(first,10)+1;
+   onehourlater=Math.round(onehourlater).toFixed(0);
+  first=first+":";
+  var last=starttime.slice(2,4);
+  starttime=first+last;
+
+   starttime=new Date(date_input+"T"+starttime+":"+last);
+  var end=new Date(date_input+"T"+onehourlater+":"+last);// default AN HOUR
+ 
+var date;
+ 
+   if(date_input === "" ){ // if empty = today , else input
+                date= new Date(); 
+             
+   
+       }else{
+              date = new Date(date_input);
+             
+             }
+             
+    
+      
+
+     
+    var button = result.getSelectedButton();
+
+ 
+      //var calendarId="issactang@gmail.com";// define calendar items
+ 
+      var location="";
+      var guests="";
+      var description="Generated from TODO google sheets.";
+         var event = {
+          'location': location,
+          'description': description,
+          'guests':guests +',',
+          'sendInvites': 'True',
+};
+      
+
+/*
+CalendarApp.getDefaultCalendar().createEvent(title,start,end),
+*/
+  CalendarApp.getDefaultCalendar().createEvent(title,starttime,end,event);
+   //var cal=CalendarApp.getDefaultCalendar().createAllDayEvent(title,date,event);
+ui.alert(
+     'Personal Calendar Added',
+    "Starts:"+starttime+"\n"+end+"\n"+title,
+      ui.ButtonSet.OK);
+      }
+      
+      /*
        Routine Tab, Click Button to Add Route to Daily TODO tab.
        1. Count the number of rows of data
        2. for loop, loop til last row of data, created time, checkbox and item
        
        */
+     
        function dailytodo(){
    
        //Get rows of data to be added to the DAILY todo list
@@ -52,7 +144,7 @@
 on click with backup button, SAVE backup spreadsheet to HKBU/ backup/goolge_drive/personal/
   
   ************/
-  function backup1(){
+ /* function backup1(){
    var sheet = SpreadsheetApp.getActiveSpreadsheet();
 
  
@@ -75,6 +167,7 @@ var newfile= DriveApp.getFileById(sheet.getId()).makeCopy(destFolder).setOwner("
     newfile2.setOwner("ccalacs@goldenair.co.uk");
   
   }
+  */
 
 function onOpen(e) {
   var spreadsheet = e.source;
@@ -91,20 +184,28 @@ function onOpen(e) {
     SpreadsheetApp.getActiveSheet().getRange('F1').setValue(new Date ());
 
   /* MENU FOR BACKUP */
-    var ui = SpreadsheetApp.getUi();
+   /* var ui = SpreadsheetApp.getUi();
  
   ui.createMenu('Backup')
       .addItem('HKBU','backup1')
          .addItem('GSUITE','backup2')
      
   .addToUi();
+  */
+    /* MENU FOR Calendar */
+    var ui = SpreadsheetApp.getUi();
+ 
+  ui.createMenu('Calendar')
+      .addItem('ADD','cal')
+        .addToUi();
+  
 }
 
 
 
 function onEdit(e) {
 
-   var spreadsheet = e.source;
+   //var spreadsheet = e.source;
   var COLUMNTOCHECK = 3;
   var SHEETNAME = 'TODO'
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -118,20 +219,25 @@ function onEdit(e) {
    
       
       var dateTimeCell = selectedCell.offset(0,-2);
+
+
+
          
       if(dateTimeCell.getValue()== "" ){//check if the field is empty before stamping
       dateTimeCell.setValue(new Date());
       }
       selectedCell.offset(0,-1).insertCheckboxes(); //auto add checkbox for done
-      selectedCell.offset(0,1).insertCheckboxes();// auto add checkbox for move to DAILY tab 
       
+      if(sheet.getSheetName() == SHEETNAME){ //ensure checkbox for move to daily tab is shown in TODO tab only
+      selectedCell.offset(0,1).insertCheckboxes();// auto add checkbox for move to DAILY tab 
+      }
       
      
 
 
 
    // Offset Column Is B, lastupdate field is J1
-     SpreadsheetApp.getActiveSheet().getRange('B1').setValue(new Date ());
+    // SpreadsheetApp.getActiveSheet().getRange('B1').setValue(new Date ());
     
 
     }
@@ -156,13 +262,16 @@ function onEdit(e) {
         if(done) {
         selectedCell.offset(0,2).setValue(new Date()); // when done is true, set completed time to now 
    
+   
  var created=selectedCell.offset(0,-1).getValue();//created
  var item=selectedCell.offset(0,1).getValue();//endtime
  var endtime=selectedCell.offset(0,2).getValue();//endtime
-    
-   
+var duration;
+duration=getDuration(created,endtime);
+ //parse to hh:mm:ss format
+
      
-  var test=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Archive").appendRow([created,done,item,endtime]);//write to archive
+  var test=SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Archive").appendRow([created,done,item,endtime,duration]);//write to archive
   
    SpreadsheetApp.getActiveSpreadsheet().getActiveSheet().deleteRow(done_row); //delete record from TODO
 
@@ -207,12 +316,17 @@ function onEdit(e) {
      
      
    
-                                            
+/*                                     
  backup1();
  backup2();
+ */
 
 }
 
 /*
 2019-12-28 -- ADDED checkbox at TODO tab, the function is when checked, append DAILY TAB then deletes from TODO tab
+2020-01-12 ADDED add item to google calendar all day event 
+2020-02-01  ADDED duration in Arhcive, number format ass duaration, written getDuration() to get string of duration hh:mm:ss calculated from raw values of date with format e.g. 2020-01-01 08:01:03
+2020-02-04 A DDED create calendar, add start time, and end time. Input start date and start time, default ends in 1 HOUR from input.ISO dates YYYY-MM-DDTHH:mm:ss
+
 */
